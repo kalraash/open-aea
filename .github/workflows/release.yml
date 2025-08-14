@@ -8,7 +8,7 @@ on:
 jobs:
   publish-pip-packages:
     name: Create Framework & Plugin Releases
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -25,6 +25,11 @@ jobs:
           sudo apt-get autoclean
           python -m pip install --upgrade pip
           pip install pipenv twine
+
+      - name: Setup pipenv and install build dependencies
+        run: |
+          make new_env
+          pipenv run pip install --upgrade setuptools wheel
 
       - name: Build wheels and source tarball
         run: |

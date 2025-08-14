@@ -1,9 +1,8 @@
-
 ## Dependencies & System Requirements
 
 The AEA framework can be used on `Windows`, `Ubuntu/Debian` and `MacOS`. There are a number of base requirements to be installed prior to usage.
 
-You need <a href="https://www.python.org/downloads/" target="_blank">Python 3.7</a> or higher as well as <a href="https://go.dev/dl/" target="_blank">Go 1.14.2</a> or higher installed.
+You need <a href="https://www.python.org/downloads/" target="_blank">Python 3.10</a> or higher as well as <a href="https://go.dev/dl/" target="_blank">Go 1.14.2</a> or higher installed.
 
 ​GCC installation is required:
 
@@ -113,7 +112,7 @@ which pipenv
 
 If you don't have it, install it. Instructions are <a href="https://pypi.org/project/pipenv/" target="_blank">here</a>.
 
-Once installed, create a new environment and open it (here we use Python 3.10 but the AEA framework supports any Python >= 3.7).
+Once installed, create a new environment and open it (here we use Python 3.10 but the AEA framework supports any Python >= 3.10).
 
 ``` bash
 touch Pipfile && pipenv --python 3.10 && pipenv shell
@@ -168,7 +167,7 @@ This is a simple demo that introduces you to the main components of an AEA.
 The fastest way to have your first AEA is to fetch one that already exists!
 
 ``` bash
-aea fetch open_aea/my_first_aea:0.1.0:bafybeiakpjbpsqbmgqdg6c36nhujqmk446u2qn7jvi2lefmnyxtmnv3tqe --remote
+aea fetch open_aea/my_first_aea:0.1.0:bafybeifptjiktbm4cl7hgu74regnj5ltbkbfmfrsstwpexqcru2zadko2u --remote
 cd my_first_aea
 ```
 ### Install AEA dependencies
@@ -264,14 +263,14 @@ cd my_first_aea
 <br>
 Second, add the stub connection to the project.
 ``` bash
-aea add connection fetchai/stub:0.21.0:bafybeibqrgcch7dufgvzoxi43vxbbhx6isfn3njhq5q3eud6yhhyjdnthm --remote
+aea add connection fetchai/stub:0.21.0:bafybeibuimb5unnszgkh3sfjihjtosyqeyx7mb6rtxvv7pbupvjr6owyum --remote
 ```
 <br>
 <b>Add the echo skill</b>
 <br>
 Third, add the echo skill to the project.
 ``` bash
-aea add skill fetchai/echo:0.19.0:bafybeigcllaxn4ycjjvika3zd6eicksuriez2wtg67gx7pamhcazl3tv54 --remote
+aea add skill fetchai/echo:0.19.0:bafybeigrd4lpaljnt7mks7v3c6xgtlgx7zmpexlkojxck4zy4pbxiuoo64 --remote
 ```
 This copies the <code>fetchai/echo:0.19.0</code> skill code containing the "behaviours", and "handlers" into the project, ready to run. The identifier of the skill <code>fetchai/echo:0.19.0</code> consists of the name of the author of the skill, followed by the skill name and its version.
 </details>
@@ -328,7 +327,7 @@ First, get the needed packages directory from IPFS (execute from the working dir
 ```bash
 mkdir packages
 cd my_first_aea
-aea add protocol fetchai/default:1.0.0:bafybeiaf3qhrdttthrisrl2tlpt3mpo5btkozw2dnxlj4cbqq56ilcl6oa --remote
+aea add protocol fetchai/default:1.0.0:bafybeifs26twgfmrcxxxrexsa42aol3rbktdqa3u5vvjlywzm5rh2nfmee --remote
 aea push protocol fetchai/default --local
 cd ..
 aea delete my_aea

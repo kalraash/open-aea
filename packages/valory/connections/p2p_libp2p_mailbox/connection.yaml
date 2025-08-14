@@ -6,21 +6,21 @@ description: The libp2p client connection implements a tcp connection to a runni
   libp2p node as a traffic delegate to send/receive envelopes to/from agents in the
   DHT.
 license: Apache-2.0
-aea_version: '>=1.0.0, <2.0.0'
+aea_version: '>=2.0.0, <3.0.0'
 fingerprint:
   README.md: bafybeibs3yp2sx6ax6h7isibyffq5unamfdxupmrb4wybjrhcjjmoycksq
   __init__.py: bafybeid2azroxglu6fl7bxdfcsv3j77vyzgpikjnfwpxg73zeb5orez6ju
-  connection.py: bafybeiau3nqcdaqntr5e5wuz33dwmezog5ejycahxjzngolmlw36djtr3m
+  connection.py: bafybeihrrgko622exvb3l2nmhgunmxb3n3vsakpfcch6e266o2ljce3po4
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
-- valory/acn:1.1.0:bafybeic6h55ov5lrzbah6fate54c4u6spopcexxspw3abotbmffabfddeu
+- valory/acn:1.1.0:bafybeicztpzulro64brsms6qmlav3dz635eykpb7ihtchu2eke2hr52efa
 class_name: P2PLibp2pMailboxConnection
 config:
   connect_retries: 3
   ledger_id: cosmos
   nodes:
-  - uri: acn.staging.autonolas.tech:9005
+  - uri: acn.autonolas.tech:9005
     public_key: 02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77
   tls_connection_signature_timeout: 5.0
 cert_requests:

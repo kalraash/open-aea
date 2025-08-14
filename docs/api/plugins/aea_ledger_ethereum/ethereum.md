@@ -692,7 +692,7 @@ Submit a transfer transaction to the ledger.
 - `tx_fee`: the transaction fee (gas) to be used (in Wei).
 - `tx_nonce`: verifies the authenticity of the tx.
 - `chain_id`: the Chain ID of the Ethereum transaction.
-- `max_fee_per_gas`: maximum amount you’re willing to pay, inclusive of `baseFeePerGas` and `maxPriorityFeePerGas`. The difference between `maxFeePerGas` and `baseFeePerGas + maxPriorityFeePerGas` is refunded  (in Wei).
+- `max_fee_per_gas`: maximum amount you're willing to pay, inclusive of `baseFeePerGas` and `maxPriorityFeePerGas`. The difference between `maxFeePerGas` and `baseFeePerGas + maxPriorityFeePerGas` is refunded  (in Wei).
 - `max_priority_fee_per_gas`: the part of the fee that goes to the miner (in Wei).
 - `gas_price`: the gas price (in Wei)
 - `gas_price_strategy`: the gas price strategy to be used.
@@ -1135,14 +1135,4 @@ def items() -> Dict[str, Any]
 ```
 
 Return session items.
-
-<a id="plugins.aea-ledger-ethereum.aea_ledger_ethereum.ethereum.set_wrapper_for_web3py_session_cache"></a>
-
-#### set`_`wrapper`_`for`_`web3py`_`session`_`cache
-
-```python
-def set_wrapper_for_web3py_session_cache() -> None
-```
-
-Wrap web3py session cache with threading.Lock.
 

@@ -9,6 +9,28 @@ Below we describe the additional manual steps required to upgrade between differ
 
 ### Upgrade guide
 
+## `v2.0.3` to `v2.0.4`
+
+- No backwards incompatible changes
+
+## `v2.0.2` to `v2.0.3`
+
+- No backwards incompatible changes
+
+## `v2.0.1` to `v2.0.2`
+
+- No backwards incompatible changes
+
+## `v2.0.0` to `v2.0.1`
+
+- No backwards incompatible changes
+
+## `v1.65.0` to `v2.0.0`
+
+- No longer supports Python 3.8 and 3.9.
+- `get_metavar` now requires a new parameter, `ctx: Context`
+- `aea` and its subcommands that expect some arguments (for example `aea`, `aea ipfs`, etc.), when used without any arguments will now finish with exit code 2 instead of 0, and print their usage help in `stderr`.
+
 ## `v1.64.0` to `v1.65.0`
 
 - No backwards incompatible changes
@@ -197,7 +219,7 @@ You will have to generate the protocols again since protocol generator will use 
 
 - No backwards incompatible changes
 
-**Note** The `Ethereum Flashbots` ledger plugin and `Solana` ledger plugin are only supported on the Python 3.9 or greater.
+**Note** The `Ethereum Flashbots` ledger plugin and `Solana` ledger plugin are only supported on Python 3.10 or greater.
 
 ## `v1.29.0` to `v1.30.0`
 
@@ -480,11 +502,11 @@ If an AEA project, or an AEA package, makes use of crypto functionalities, it wi
 ```yaml
 dependencies:
   aea-ledger-cosmos:
-    version: <2.0.0,>=1.0.0
+    version: <3.0.0,>=2.0.0
   aea-ledger-ethereum:
-    version: <2.0.0,>=1.0.0
+    version: <3.0.0,>=2.0.0
   aea-ledger-fetchai:
-    version: <2.0.0,>=1.0.0
+    version: <3.0.0,>=2.0.0
 ```
 The version specifier sets are important, as these plug-ins, at version `0.1.0`, depend on a specific range of the `aea` package.
 

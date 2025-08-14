@@ -34,7 +34,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 from uuid import uuid4
 
 import ipfshttpclient  # noqa: F401 # pylint: disable=unused-import
-import web3._utils.request
 from eth_account import Account
 from eth_account._utils.legacy_transactions import (
     encode_transaction,
@@ -52,13 +51,14 @@ from requests.exceptions import ReadTimeout as RequestsReadTimeoutError
 from urllib3.exceptions import ReadTimeoutError as Urllib3ReadTimeoutError
 from web3 import HTTPProvider, Web3
 from web3._utils.events import EventFilterBuilder
-from web3._utils.request import DEFAULT_TIMEOUT, SimpleCache
+from web3._utils.http import DEFAULT_HTTP_TIMEOUT
 from web3.contract.contract import ContractEvent
 from web3.datastructures import AttributeDict
 from web3.exceptions import ContractLogicError, TransactionNotFound
 from web3.gas_strategies.rpc import rpc_gas_price_strategy
-from web3.middleware import geth_poa_middleware
+from web3.middleware import ExtraDataToPOAMiddleware
 from web3.types import TxData, TxParams, TxReceipt, Wei
+from web3.utils.caching import SimpleCache
 
 from aea.common import Address, JSONLike
 from aea.crypto.base import Crypto, FaucetApi, Helper, LedgerApi
@@ -193,7 +193,7 @@ def get_default_gas_strategy(chain_id: int) -> Dict[str, Any]:
     return default_strategy
 
 
-def estimate_priority_fee(
+def estimate_priority_fee(  # pylint: disable=too-many-positional-arguments
     web3_object: Web3,
     block_number: int,
     default_priority_fee: Optional[int],
@@ -249,7 +249,7 @@ def estimate_priority_fee(
     return values[len(values) // 2]
 
 
-def get_gas_price_strategy_eip1559(
+def get_gas_price_strategy_eip1559(  # pylint: disable=too-many-positional-arguments
     max_gas_fast: int,
     fee_history_blocks: int,
     fee_history_percentile: int,
@@ -471,8 +471,10 @@ class SignedTransactionTranslator:
     def to_dict(signed_transaction: SignedTransaction) -> Dict[str, Union[str, int]]:
         """Write SignedTransaction to dict."""
         signed_transaction_dict: Dict[str, Union[str, int]] = {
-            "raw_transaction": cast(str, signed_transaction.rawTransaction.hex()),
-            "hash": cast(str, signed_transaction.hash.hex()),
+            "raw_transaction": cast(
+                str, signed_transaction.raw_transaction.to_0x_hex()
+            ),
+            "hash": cast(str, signed_transaction.hash.to_0x_hex()),
             "r": cast(int, signed_transaction.r),
             "s": cast(int, signed_transaction.s),
             "v": cast(int, signed_transaction.v),
@@ -490,7 +492,7 @@ class SignedTransactionTranslator:
                 f"Invalid for conversion. Found object: {signed_transaction_dict}."
             )
         signed_transaction = SignedTransaction(
-            rawTransaction=HexBytes(
+            raw_transaction=HexBytes(
                 cast(str, signed_transaction_dict["raw_transaction"])
             ),
             hash=HexBytes(cast(str, signed_transaction_dict["hash"])),
@@ -510,7 +512,7 @@ class AttributeDictTranslator:
         if value is None:
             return value
         if isinstance(value, HexBytes):
-            return value.hex()
+            return value.to_0x_hex()
         if isinstance(value, list):
             return cls._process_list(value, cls._remove_hexbytes)
         if type(value) in (bool, int, float, str, bytes):
@@ -600,7 +602,7 @@ class EthereumCrypto(Crypto[LocalAccount]):
             extra_entropy=extra_entropy,
         )
 
-        bytes_representation = Web3.to_bytes(hexstr=self.entity.key.hex())
+        bytes_representation = Web3.to_bytes(hexstr=self.entity.key.to_0x_hex())
         self._public_key = str(keys.PrivateKey(bytes_representation).public_key)
         self._address = self.entity.address
 
@@ -613,7 +615,7 @@ class EthereumCrypto(Crypto[LocalAccount]):
 
         :return: a private key string in hex format
         """
-        return self.entity.key.hex()
+        return self.entity.key.to_0x_hex()
 
     @property
     def public_key(self) -> str:
@@ -677,12 +679,12 @@ class EthereumCrypto(Crypto[LocalAccount]):
         if is_deprecated_mode and len(message) == 32:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                signature_dict = self.entity.signHash(message)
-            signed_msg = signature_dict["signature"].hex()
+                signature_dict = self.entity.unsafe_sign_hash(message)
+            signed_msg = signature_dict["signature"].to_0x_hex()
         else:
             signable_message = encode_defunct(primitive=message)
             signature = self.entity.sign_message(signable_message=signable_message)
-            signed_msg = signature["signature"].hex()
+            signed_msg = signature["signature"].to_0x_hex()
         return signed_msg
 
     def sign_transaction(self, transaction: JSONLike) -> JSONLike:
@@ -740,7 +742,7 @@ class EthereumCrypto(Crypto[LocalAccount]):
             if e.args[0] == "MAC mismatch":
                 raise DecryptError() from e
             raise
-        return private_key.hex()[2:]
+        return private_key.hex()
 
 
 class EthereumHelper(Helper):
@@ -810,7 +812,7 @@ class EthereumHelper(Helper):
         aggregate_hash = Web3.keccak(
             b"".join([seller.encode(), client.encode(), uuid4().bytes])
         )
-        return aggregate_hash.hex()
+        return aggregate_hash.to_0x_hex()
 
     @classmethod
     def get_address_from_public_key(cls, public_key: str) -> str:
@@ -821,7 +823,7 @@ class EthereumHelper(Helper):
         :return: str
         """
         keccak_hash = Web3.keccak(hexstr=public_key)
-        raw_address = keccak_hash[-20:].hex()
+        raw_address = keccak_hash[-20:].to_0x_hex()
         address = Web3.to_checksum_address(raw_address)
         return address
 
@@ -884,7 +886,7 @@ class EthereumHelper(Helper):
         :param message: the message to be hashed.
         :return: the hash of the message as a hex string.
         """
-        digest = Web3.keccak(message).hex()
+        digest = Web3.keccak(message).to_0x_hex()
         return digest
 
     @classmethod
@@ -925,7 +927,7 @@ class EthereumApi(LedgerApi, EthereumHelper):
                 endpoint_uri=kwargs.pop("address", DEFAULT_ADDRESS),
                 request_kwargs={
                     REQUESTS_TIMEOUT_KEY: kwargs.pop(
-                        REQUESTS_TIMEOUT_KEY, DEFAULT_TIMEOUT
+                        REQUESTS_TIMEOUT_KEY, DEFAULT_HTTP_TIMEOUT
                     )
                 },
             )
@@ -949,7 +951,7 @@ class EthereumApi(LedgerApi, EthereumHelper):
         if self._poa_chain:
             # https://web3py.readthedocs.io/en/stable/middleware.html#geth-style-proof-of-authority
             self._api.middleware_onion.inject(
-                geth_poa_middleware, name="geth_poa_middleware", layer=0
+                ExtraDataToPOAMiddleware, name="ExtraDataToPOAMiddleware", layer=0
             )
             _default_logger.info(
                 "EthereumApi has been configured with Proof of Authority chain support"
@@ -1007,7 +1009,7 @@ class EthereumApi(LedgerApi, EthereumHelper):
             f"Response must be of types=int, float, bytes, str, list, dict. Found={type(response)}."
         )
 
-    def get_transfer_transaction(  # pylint: disable=arguments-differ
+    def get_transfer_transaction(  # pylint: disable=too-many-positional-arguments
         self,
         sender_address: Address,
         destination_address: Address,
@@ -1032,7 +1034,7 @@ class EthereumApi(LedgerApi, EthereumHelper):
         :param tx_fee: the transaction fee (gas) to be used (in Wei).
         :param tx_nonce: verifies the authenticity of the tx.
         :param chain_id: the Chain ID of the Ethereum transaction.
-        :param max_fee_per_gas: maximum amount you’re willing to pay, inclusive of `baseFeePerGas` and `maxPriorityFeePerGas`. The difference between `maxFeePerGas` and `baseFeePerGas + maxPriorityFeePerGas` is refunded  (in Wei).
+        :param max_fee_per_gas: maximum amount you're willing to pay, inclusive of `baseFeePerGas` and `maxPriorityFeePerGas`. The difference between `maxFeePerGas` and `baseFeePerGas + maxPriorityFeePerGas` is refunded  (in Wei).
         :param max_priority_fee_per_gas: the part of the fee that goes to the miner (in Wei).
         :param gas_price: the gas price (in Wei)
         :param gas_price_strategy: the gas price strategy to be used.
@@ -1228,23 +1230,19 @@ class EthereumApi(LedgerApi, EthereumHelper):
         del transaction["gas"]
         try:
             gas_estimate = self._api.eth.estimate_gas(  # pylint: disable=no-member
-                transaction=cast(
-                    TxParams, AttributeDictTranslator.from_dict(transaction)
-                )
+                transaction=cast(TxParams, transaction)
             )
         except (ContractLogicError, ValueError) as e:
             _default_logger.warning(
                 f"Unable to estimate gas with default state , "
-                f"{type(e).__name__}: {e.__str__()}"
+                f"{type(e).__name__}: {str(e)}"
             )
             # gas estimation might fail when repricing txs
             # to avoid effects of pending txs when estimating gas
             # we can set the block identifier to "latest" block
             # this might fail if the node doesn't support the `block_identifier` param
             gas_estimate = self._api.eth.estimate_gas(  # pylint: disable=no-member
-                transaction=cast(
-                    TxParams, AttributeDictTranslator.from_dict(transaction)
-                ),
+                transaction=cast(TxParams, transaction),
                 block_identifier="latest",
             )
 
@@ -1277,7 +1275,7 @@ class EthereumApi(LedgerApi, EthereumHelper):
         except (ContractLogicError, ValueError) as e:
             _default_logger.warning(
                 f"Unable to estimate L1 data fee with default state , "
-                f"{type(e).__name__}: {e.__str__()}"
+                f"{type(e).__name__}: {str(e)}"
             )
             l1_fee_estimate = 0
 
@@ -1314,9 +1312,9 @@ class EthereumApi(LedgerApi, EthereumHelper):
         """
         signed_transaction = SignedTransactionTranslator.from_dict(tx_signed)
         hex_value = self._api.eth.send_raw_transaction(  # pylint: disable=no-member
-            signed_transaction.rawTransaction
+            signed_transaction.raw_transaction
         )
-        tx_digest = hex_value.hex()
+        tx_digest = hex_value.to_0x_hex()
         _default_logger.debug(
             "Successfully sent transaction with digest: {}".format(tx_digest)
         )
@@ -1547,7 +1545,9 @@ class EthereumApi(LedgerApi, EthereumHelper):
         if gas is not None:
             transaction.update({"gas": gas})
         if self._is_gas_estimation_enabled:
-            transaction = self.update_with_gas_estimate(transaction)
+            transaction = self.update_with_gas_estimate(
+                transaction, raise_on_try=raise_on_try
+            )
         return transaction
 
     @try_decorator("Unable to retrieve max_priority_fee: {}", logger_method="warning")
@@ -1563,7 +1563,7 @@ class EthereumApi(LedgerApi, EthereumHelper):
         :param address: the address to validate
         :return: whether the address is valid
         """
-        return Web3.is_address(address)
+        return Web3.is_checksum_address(address)
 
     @classmethod
     def contract_method_call(  # pylint: disable=arguments-differ
@@ -1583,7 +1583,7 @@ class EthereumApi(LedgerApi, EthereumHelper):
         result = method(**method_args).call()
         return result
 
-    def build_transaction(  # pylint: disable=too-many-arguments
+    def build_transaction(  # pylint: disable=too-many-positional-arguments
         self,
         contract_instance: Any,
         method_name: str,
@@ -1691,7 +1691,7 @@ class EthereumApi(LedgerApi, EthereumHelper):
             f"Sending a bundle of transactions is not supported for the {self.identifier} plugin"
         )
 
-    def batch_filter_wrapper(
+    def batch_filter_wrapper(  # pylint: disable=too-many-positional-arguments
         self,
         event: ContractEvent,
         match_single: Dict[str, Any],
@@ -1704,8 +1704,8 @@ class EthereumApi(LedgerApi, EthereumHelper):
         def batch_filter() -> Any:
             """Filter events for a specific batch."""
             filter_ = event.build_filter()
-            filter_.fromBlock = from_block
-            filter_.toBlock = to_block
+            filter_.from_block = from_block
+            filter_.to_block = to_block
             method_to_match_dict = {
                 MATCH_SINGLE: match_single,
                 MATCH_ANY: match_any,
@@ -1724,7 +1724,7 @@ class EthereumApi(LedgerApi, EthereumHelper):
 
         return batch_filter
 
-    def filter_event(
+    def filter_event(  # pylint: disable=too-many-positional-arguments
         self,
         event: ContractEvent,
         match_single: Dict[str, Any],
@@ -1865,15 +1865,3 @@ class SimpleCacheLockWrapper:
     def items(self) -> Dict[str, Any]:
         """Return session items."""
         return self.session_cache.items()
-
-
-def set_wrapper_for_web3py_session_cache() -> None:
-    """Wrap web3py session cache with threading.Lock."""
-
-    # pylint: disable=protected-access
-    web3._utils.request._session_cache = SimpleCacheLockWrapper(
-        web3._utils.request._session_cache
-    )
-
-
-set_wrapper_for_web3py_session_cache()

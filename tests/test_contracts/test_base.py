@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2023 Valory AG
+#   Copyright 2021-2025 Valory AG
 #   Copyright 2018-2020 Fetch.AI Limited
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -152,7 +152,7 @@ def test_get_instance_no_address_ethereum(dummy_contract):
         address=ETHEREUM_DEFAULT_ADDRESS,
     )
     instance = dummy_contract.get_instance(ledger_api)
-    assert type(instance) == web3._utils.datatypes.PropertyCheckingFactory
+    assert type(instance) is web3._utils.datatypes.PropertyCheckingFactory
 
 
 @pytest.mark.integration
@@ -377,7 +377,7 @@ def test_get_method_data():
         "inputs": [{"name": "inputA"}, {"name": "inputB"}, {"name": "inputC"}]
     }
     contract_instance.get_function_by_name.return_value = method
-    contract_instance.encodeABI.return_value = dummy_address
+    contract_instance.encode_abi.return_value = dummy_address
     ledger_api = MagicMock()
     ledger_api.get_contract_instance.return_value = contract_instance
 
@@ -407,7 +407,7 @@ def test_get_method_data__key_error():
         "inputs": [{"name": "inputA"}, {"name": "inputB"}, {"name": "inputC"}]
     }
     contract_instance.get_function_by_name.return_value = method
-    contract_instance.encodeABI.return_value = dummy_address
+    contract_instance.encode_abi.return_value = dummy_address
     ledger_api = MagicMock()
     ledger_api.get_contract_instance.return_value = contract_instance
 
@@ -432,7 +432,7 @@ def test_get_method_data__attribute_error():
     contract_instance = MagicMock()
     method = None  # provoke an attribute error when accessing method.abi
     contract_instance.get_function_by_name.return_value = method
-    contract_instance.encodeABI.return_value = dummy_address
+    contract_instance.encode_abi.return_value = dummy_address
     ledger_api = MagicMock()
     ledger_api.get_contract_instance.return_value = contract_instance
 
@@ -451,7 +451,7 @@ def test_get_method_data_type_error():
     )
     dummy_address = "0x0000000000000000000000000000000000000000"
 
-    def dummy_fun(fn_name, args):
+    def dummy_fun(abi_element_identifier, args):
         raise TypeError
 
     contract_instance = MagicMock()
@@ -460,7 +460,7 @@ def test_get_method_data_type_error():
         "inputs": [{"name": "inputA"}, {"name": "inputB"}, {"name": "inputC"}]
     }
     contract_instance.get_function_by_name.return_value = method
-    contract_instance.encodeABI = dummy_fun
+    contract_instance.encode_abi = dummy_fun
     ledger_api = MagicMock()
     ledger_api.get_contract_instance.return_value = contract_instance
 

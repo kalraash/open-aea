@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2025 Valory AG
 #   Copyright 2018-2019 Fetch.AI Limited
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -81,7 +81,7 @@ of an AEA package configuration file, e.g.:
 dependencies:
     ...
     open-aea-ledger-fetchai:
-        version: >=1.0.0,<2.0.0
+        version: >=2.0.0,<3.0.0
 """
 YAML_DEPENDENCY_SPECIFIER_SET_PATTERN = (
     "(?<={package_name}:\n    version: )({specifier_set})"
@@ -180,7 +180,7 @@ class PythonPackageVersionBumper:
 
     IGNORE_DIRS = (Path(".git"),)
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-positional-arguments
         self,
         root_dir: Path,
         python_pkg_dir: Path,

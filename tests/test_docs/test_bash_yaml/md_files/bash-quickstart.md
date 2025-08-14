@@ -2,7 +2,7 @@
 python3 --version
 ```
 ``` bash
-sudo apt-get install python3.8-dev
+sudo apt-get install python3.10-dev
 ```
 ``` bash
 curl https://raw.githubusercontent.com/valory-xyz/open-aea/main/scripts/install.sh --output install.sh
@@ -72,7 +72,7 @@ v1.7.0
 AEA configurations successfully initialized: {'author': 'fetchai'}
 ```
 ``` bash
-aea fetch open_aea/my_first_aea:0.1.0:bafybeiakpjbpsqbmgqdg6c36nhujqmk446u2qn7jvi2lefmnyxtmnv3tqe --remote
+aea fetch open_aea/my_first_aea:0.1.0:bafybeifptjiktbm4cl7hgu74regnj5ltbkbfmfrsstwpexqcru2zadko2u --remote
 cd my_first_aea
 ```
 ``` bash
@@ -152,19 +152,19 @@ aea delete my_first_aea
 
 
 ``` bash
-aea fetch open_aea/my_first_aea:0.1.0:bafybeiakpjbpsqbmgqdg6c36nhujqmk446u2qn7jvi2lefmnyxtmnv3tqe --remote
+aea fetch open_aea/my_first_aea:0.1.0:bafybeifptjiktbm4cl7hgu74regnj5ltbkbfmfrsstwpexqcru2zadko2u --remote
 cd my_first_aea
 ```
 
 ``` bash
-aea fetch open_aea/my_first_aea:0.1.0:bafybeiakpjbpsqbmgqdg6c36nhujqmk446u2qn7jvi2lefmnyxtmnv3tqe --remote
+aea fetch open_aea/my_first_aea:0.1.0:bafybeifptjiktbm4cl7hgu74regnj5ltbkbfmfrsstwpexqcru2zadko2u --remote
 cd my_first_aea
 ```
 
 ```bash
 mkdir packages
 cd my_first_aea
-aea add protocol fetchai/default:1.0.0:bafybeiaf3qhrdttthrisrl2tlpt3mpo5btkozw2dnxlj4cbqq56ilcl6oa --remote
+aea add protocol fetchai/default:1.0.0:bafybeifs26twgfmrcxxxrexsa42aol3rbktdqa3u5vvjlywzm5rh2nfmee --remote
 aea push protocol fetchai/default --local
 cd ..
 aea delete my_aea

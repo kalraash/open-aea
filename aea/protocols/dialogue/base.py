@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2025 Valory AG
 #   Copyright 2018-2021 Fetch.AI Limited
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@ import secrets
 import sys
 from collections import defaultdict, namedtuple
 from enum import Enum
+from functools import cached_property
 from inspect import signature
 from typing import (
     Any,
@@ -46,7 +47,6 @@ from typing import (
 
 from aea.common import Address
 from aea.exceptions import AEAEnforceError, enforce
-from aea.helpers.base import cached_property
 from aea.helpers.storage.generic_storage import SyncCollection
 from aea.protocols.base import Message
 from aea.skills.base import SkillComponent
@@ -227,10 +227,10 @@ class _DialogueMeta(type):
     Creates class level Rules instance to share among instances
     """
 
-    def __new__(cls, name: str, bases: Tuple[Type], dct: Dict) -> "_DialogueMeta":
+    def __new__(mcs, name: str, bases: Tuple[Type], dct: Dict) -> "_DialogueMeta":
         """Construct a new type."""
         # set class level `_rules`
-        dialogue_cls: Type[Dialogue] = super().__new__(cls, name, bases, dct)  # type: ignore
+        dialogue_cls: Type[Dialogue] = super().__new__(mcs, name, bases, dct)  # type: ignore
         dialogue_cls._rules = dialogue_cls.Rules(
             dialogue_cls.INITIAL_PERFORMATIVES,
             dialogue_cls.TERMINAL_PERFORMATIVES,
@@ -389,7 +389,7 @@ class Dialogue(
     def __eq__(self, other: Any) -> bool:
         """Compare two dialogues."""
         return (
-            type(self) == type(other)  # pylint: disable=unidiomatic-typecheck
+            type(self) is type(other)  # pylint: disable=unidiomatic-typecheck
             and self.dialogue_label == other.dialogue_label
             and self.message_class == other.message_class
             and self._incoming_messages == other._incoming_messages
@@ -982,7 +982,7 @@ class Dialogue(
         )
         self._dialogue_label = final_dialogue_label
 
-    def _custom_validation(  # pylint: disable=no-self-use,unused-argument
+    def _custom_validation(  # pylint: disable=unused-argument
         self, message: Message
     ) -> Tuple[bool, str]:
         """
@@ -1158,9 +1158,9 @@ class BasicDialoguesStorage:
             complete_dialogue_label,
         ) = dialogue.dialogue_label.get_both_versions()
 
-        self._incomplete_to_complete_dialogue_labels[
-            incomplete_dialogue_label
-        ] = complete_dialogue_label
+        self._incomplete_to_complete_dialogue_labels[incomplete_dialogue_label] = (
+            complete_dialogue_label
+        )
 
     def _add_terminal_state_dialogue(self, dialogue: Dialogue) -> None:
         """
@@ -1246,9 +1246,9 @@ class BasicDialoguesStorage:
         complete_dialogue_label: DialogueLabel,
     ) -> None:
         """Set incomplete dialogue label."""
-        self._incomplete_to_complete_dialogue_labels[
-            incomplete_dialogue_label
-        ] = complete_dialogue_label
+        self._incomplete_to_complete_dialogue_labels[incomplete_dialogue_label] = (
+            complete_dialogue_label
+        )
 
     def is_dialogue_present(self, dialogue_label: DialogueLabel) -> bool:
         """Check dialogue with label specified presents in storage."""
@@ -1355,7 +1355,9 @@ class PersistDialoguesStorage(BasicDialoguesStorage):
             incomplete_dialogues_data = cast(List, incomplete_dialogues_data)
             self._set_incomplete_dialogues_labels_from_json(incomplete_dialogues_data)
 
-    def _load_dialogues(self, collection: SyncCollection) -> Iterable[Dialogue]:
+    def _load_dialogues(
+        self, collection: Optional[SyncCollection] = None
+    ) -> Iterable[Dialogue]:
         """Load dialogues from collection."""
         if not collection:  # pragma: nocover
             return
@@ -1475,7 +1477,9 @@ class PersistDialoguesStorageWithOffloading(PersistDialoguesStorage):
         return None
 
     def _get_dialogue_from_collection(
-        self, dialogue_label: "DialogueLabel", collection: SyncCollection
+        self,
+        dialogue_label: "DialogueLabel",
+        collection: Optional[SyncCollection] = None,
     ) -> Optional[Dialogue]:
         """
         Get dialogue by label from collection.
@@ -1496,7 +1500,7 @@ class PersistDialoguesStorageWithOffloading(PersistDialoguesStorage):
         """Skip terminated dialogues loading, cause it's offloaded."""
 
     def _get_dialogues_by_address_from_collection(
-        self, address: Address, collection: SyncCollection
+        self, address: Address, collection: Optional[SyncCollection] = None
     ) -> List["Dialogue"]:
         """
         Get all dialogues with opponent address from specified collection.
@@ -1553,7 +1557,7 @@ class Dialogues:
 
     _keep_terminal_state_dialogues = False
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-positional-arguments
         self,
         self_address: Address,
         end_states: FrozenSet[Dialogue.EndState],

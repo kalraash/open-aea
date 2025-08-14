@@ -26,7 +26,7 @@ Create one AEA as follows:
 ``` bash
 aea create my_genesis_aea
 cd my_genesis_aea
-aea add connection valory/p2p_libp2p:0.1.0:bafybeig2atkjnrz7lsboubaque567ndtzog6k53dnmrrq3eeqgbqmmcq5y --remote
+aea add connection valory/p2p_libp2p:0.1.0:bafybeifzslvb5sdayob4reuor35bmd2tr5oen4l77dx34eigcxtfcfv3ke --remote
 aea config set agent.default_connection valory/p2p_libp2p:0.1.0
 aea install
 aea build
@@ -58,7 +58,7 @@ Create a second AEA:
 ``` bash
 aea create my_other_aea
 cd my_other_aea
-aea add connection valory/p2p_libp2p:0.1.0:bafybeig2atkjnrz7lsboubaque567ndtzog6k53dnmrrq3eeqgbqmmcq5y --remote
+aea add connection valory/p2p_libp2p:0.1.0:bafybeifzslvb5sdayob4reuor35bmd2tr5oen4l77dx34eigcxtfcfv3ke --remote
 aea config set agent.default_connection valory/p2p_libp2p:0.1.0
 aea install
 aea build
@@ -107,10 +107,10 @@ You can inspect the `libp2p_node.log` log files of the AEA to see how they disco
 You can connect to the deployed public test network by adding one or multiple of the following addresses as the `p2p_libp2p` connection's `entry_peers`:
 
 ``` yaml
-/dns4/staging.acn.autonolas.tech/tcp/9003/p2p/16Uiu2HAkzqwxz5HdbnXS6mB4nTwJ3WysQa6udvbZ3te2sCHZ6ih2
+/dns4/acn.autonolas.tech/tcp/9003/p2p/16Uiu2HAkzqwxz5HdbnXS6mB4nTwJ3WysQa6udvbZ3te2sCHZ6ih2
 ```
 ``` yaml
-/dns4/staging.acn.autonolas.tech/tcp/9004/p2p/16Uiu2HAmCQqXLFWaqqUv8hFdFPDwwNQf9qEQox8Kcf78heb33e7x
+/dns4/acn.autonolas.tech/tcp/9004/p2p/16Uiu2HAmCQqXLFWaqqUv8hFdFPDwwNQf9qEQox8Kcf78heb33e7x
 ```
 
 Specifically, in an AEAs configuration `aea-config.yaml` add the above addresses for `entry_peers` as follows:
@@ -120,7 +120,7 @@ public_id: valory/p2p_libp2p:0.1.0
 type: connection
 config:
   delegate_uri: null
-  entry_peers: [/dns4/staging.acn.autonolas.tech/tcp/9003/p2p/16Uiu2HAkzqwxz5HdbnXS6mB4nTwJ3WysQa6udvbZ3te2sCHZ6ih2,/dns4/staging.acn.autonolas.tech/tcp/9004/p2p/16Uiu2HAmCQqXLFWaqqUv8hFdFPDwwNQf9qEQox8Kcf78heb33e7x]
+  entry_peers: [/dns4/acn.autonolas.tech/tcp/9003/p2p/16Uiu2HAkzqwxz5HdbnXS6mB4nTwJ3WysQa6udvbZ3te2sCHZ6ih2,/dns4/acn.autonolas.tech/tcp/9004/p2p/16Uiu2HAmCQqXLFWaqqUv8hFdFPDwwNQf9qEQox8Kcf78heb33e7x]
   public_uri: null
   local_uri: 127.0.0.1:9001
 ```

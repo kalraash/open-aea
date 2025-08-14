@@ -1,5 +1,38 @@
 # Release History - open AEA
 
+## 2.0.4 (2025-08-11)
+
+Packages:
+- Updates the `acn.staging.autonolas.tech` DNS entries to `acn.autonolas.tech`
+
+## 2.0.3 (2025-08-07)
+
+Plugins:
+- Fixes no attribute error in `aea-ledger-ethereum` plugin when calling `update_with_gas_estimate` along with `from` address in the transaction. #812
+
+## 2.0.2 (2025-08-05)
+
+AEA, Plugins, Packages:
+- Bumps the version of `web3py` to `>=7.0.0,<8.0.0`  # 810
+- Bumps the version of `eth-account` to `>=0.13.0,<0.14.0`  # 810
+- Bumps the version of `hexbytes` to `==1.3.1`  # 810
+
+## 2.0.1 (2025-07-25)
+
+AEA:
+- Loosens the pytest version range to `>=7.0.0,<8.0.0` # 808
+
+Plugins:
+- Removes pytest from the base dependencies of `aea-cli-ipfs` plugin and keeps it only for tests # 808
+
+## 2.0.0 (2025-07-16)
+
+AEA, Plugins, Packages:
+- Ends support for Python 3.8 and 3.9. #801
+- Docker images now use Python 3.10 as the base Python version #801
+- `get_metavar` now requires a new parameter, `ctx: Context` #801
+- `aea` and its subcommands that expect some arguments (for example `aea`, `aea ipfs`, etc.), when used without any arguments will now finish with exit code 2 instead of 0, and print their usage help in `stderr`. #801
+
 ## 1.65.0 (2025-03-13)
 
 Packages:

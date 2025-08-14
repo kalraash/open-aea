@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2021-2025 Valory AG
 #   Copyright 2018-2019 Fetch.AI Limited
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ def get_all_extras() -> Dict:
         "click>=8.1.0,<9",
         "pyyaml>=6.0.1,<9",
         "packaging>=23.1,<24.0",
-        "pytest>=7.0.0,<7.3.0",
+        "pytest>=7.0.0,<8.0.0",
         "coverage>=6.4.4,<8.0.0",
         "jsonschema<4.4.0,>=4.3.0",
         "semver>=2.9.1,<3.0.0",
@@ -114,8 +114,6 @@ if __name__ == "__main__":
             "Operating System :: MacOS",
             "Operating System :: Microsoft",
             "Operating System :: Unix",
-            "Programming Language :: Python :: 3.8",
-            "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
             "Programming Language :: Python :: 3.11",
             "Topic :: Communications",
@@ -131,7 +129,7 @@ if __name__ == "__main__":
         zip_safe=False,
         include_package_data=True,
         license=about["__license__"],
-        python_requires=">=3.8",
+        python_requires=">=3.10",
         keywords="aea open-aea autonomous-economic-agents agent-framework multi-agent-systems multi-agent cryptocurrency cryptocurrencies dezentralized dezentralized-network",
         project_urls={
             "Bug Reports": "https://github.com/valory-xyz/open-aea/issues",

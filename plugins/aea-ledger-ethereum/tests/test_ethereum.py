@@ -42,7 +42,6 @@ from aea_ledger_ethereum import (
     EthereumCrypto,
     EthereumFaucetApi,
     EthereumHelper,
-    SimpleCacheLockWrapper,
     get_gas_price_strategy,
     get_gas_price_strategy_eip1559,
     requests,
@@ -66,7 +65,6 @@ from aea_ledger_ethereum.ethereum import (
 from eth_typing import BlockNumber
 from requests import HTTPError
 from web3 import Web3
-from web3._utils.request import _session_cache as session_cache
 from web3.datastructures import AttributeDict
 from web3.exceptions import ContractLogicError
 from web3.types import FeeHistory, Wei
@@ -157,10 +155,10 @@ def test_initialization():
     account = EthereumCrypto()
     assert account.entity is not None, "The property must return the account."
     assert (
-        account.address is not None and type(account.address) == str
+        account.address is not None and type(account.address) is str
     ), "After creation the display address must not be None"
     assert (
-        account.public_key is not None and type(account.public_key) == str
+        account.public_key is not None and type(account.public_key) is str
     ), "After creation the public key must no be None"
     assert account.entity is not None, "After creation the entity must no be None"
 
@@ -396,8 +394,9 @@ def test_get_deploy_transaction(ethereum_testnet_config, ganache):
         value=0,
         max_priority_fee_per_gas=max_priority_fee_per_gas,
         max_fee_per_gas=max_fee_per_gas,
+        raise_on_try=True,
     )
-    assert type(deploy_tx) == dict and len(deploy_tx) == 8
+    assert type(deploy_tx) is dict and len(deploy_tx) == 8
     assert all(
         key
         in [
@@ -526,16 +525,6 @@ def test_ethereum_api_get_deploy_transaction(ethereum_testnet_config):
         assert tx["gas"] == 120
 
 
-def test_session_cache():
-    """Test session cache."""
-    assert isinstance(session_cache, SimpleCacheLockWrapper)
-
-    session_cache.cache("key", 1)
-    assert session_cache.get_cache_entry("key") == 1
-    session_cache.clear()
-    assert "key" not in session_cache
-
-
 def test_gas_price_strategy_eip1559() -> None:
     """Test eip1559 based gas price strategy."""
 
@@ -576,7 +565,7 @@ def test_gas_price_strategy_eip1559() -> None:
     ],
 )
 def test_gas_price_strategy_eip1559_fallback_get_block(
-    get_block_mock: Dict[str, Optional[int]]
+    get_block_mock: Dict[str, Optional[int]],
 ) -> None:
     """Test eip1559 based gas price strategy."""
 
@@ -1080,7 +1069,7 @@ def test_try_get_gas_pricing_poa(
 ) -> None:
     """Test `try_get_gas_pricing` for a poa chain like Rinkeby."""
     ethereum_api = EthereumApi(**polygon_testnet_config)
-    assert "geth_poa_middleware" in ethereum_api.api.middleware_onion.keys()
+    assert "ExtraDataToPOAMiddleware" in ethereum_api.api.middleware_onion.keys()
 
     # test gas pricing
     gas_price = ethereum_api.try_get_gas_pricing(gas_price_strategy=strategy["name"])
@@ -1124,14 +1113,18 @@ def test_gas_estimation(
         "data": "",
     }
     with caplog.at_level(logging.DEBUG, logger="aea.crypto.ethereum._default_logger"):
-        with patch.object(ethereum_api._api.eth, "estimate_gas") as estimate_gas_mock:
-            if mock_exception:
+        if mock_exception:
+            with patch.object(
+                ethereum_api._api.eth, "estimate_gas"
+            ) as estimate_gas_mock:
                 # raise exception on first call only
                 estimate_gas_mock.side_effect = [
                     ValueError("triggered exception"),
                     None,
                 ]
-            ethereum_api.update_with_gas_estimate(tx)
+                ethereum_api.update_with_gas_estimate(tx)
+        else:
+            ethereum_api.update_with_gas_estimate(tx, raise_on_try=True)
         if mock_exception:
             assert (
                 "ValueError: triggered exception" in caplog.text

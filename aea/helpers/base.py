@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2024 Valory AG
+#   Copyright 2022-2025 Valory AG
 #   Copyright 2018-2021 Fetch.AI Limited
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,6 @@ from copy import copy
 from functools import wraps
 from importlib.machinery import ModuleSpec
 from pathlib import Path
-from threading import RLock
 from typing import (
     Any,
     Callable,
@@ -637,66 +636,6 @@ def reachable_nodes(
     return result
 
 
-_NOT_FOUND = object()
-
-
-# copied from python3.8 functools
-class cached_property:  # pragma: nocover
-    """Cached property from python3.8 functools."""
-
-    def __init__(self, func: Callable) -> None:
-        """Init cached property."""
-        self.func = func
-        self.attrname = None
-        self.__doc__ = func.__doc__
-        self.lock = RLock()
-
-    def __set_name__(self, _: Any, name: Any) -> None:
-        """Set name."""
-        if self.attrname is None:
-            self.attrname = name
-        elif name != self.attrname:
-            raise TypeError(
-                "Cannot assign the same cached_property to two different names "
-                f"({self.attrname!r} and {name!r})."
-            )
-
-    def __get__(self, instance: Any, _: Optional[Any] = None) -> Any:
-        """Get instance."""
-        if instance is None:
-            return self
-        if self.attrname is None:
-            raise TypeError(
-                "Cannot use cached_property instance without calling __set_name__ on it."
-            )
-        try:
-            cache = instance.__dict__
-        except (
-            AttributeError
-        ):  # not all objects have __dict__ (e.g. class defines slots)
-            msg = (
-                f"No '__dict__' attribute on {type(instance).__name__!r} "
-                f"instance to cache {self.attrname!r} property."
-            )
-            raise TypeError(msg) from None
-        val = cache.get(self.attrname, _NOT_FOUND)
-        if val is _NOT_FOUND:
-            with self.lock:
-                # check if another thread filled cache while we awaited lock
-                val = cache.get(self.attrname, _NOT_FOUND)
-                if val is _NOT_FOUND:
-                    val = self.func(instance)
-                    try:
-                        cache[self.attrname] = val
-                    except TypeError:
-                        msg = (
-                            f"The '__dict__' attribute on {type(instance).__name__!r} instance "
-                            f"does not support item assignment for caching {self.attrname!r} property."
-                        )
-                        raise TypeError(msg) from None
-        return val
-
-
 def ensure_dir(dir_path: str) -> None:
     """Check if dir_path is a directory or create it."""
     if not os.path.exists(dir_path):
@@ -733,7 +672,7 @@ def parse_datetime_from_str(date_string: str) -> datetime.datetime:
 class CertRequest:
     """Certificate request for proof of representation."""
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-positional-arguments
         self,
         public_key: str,
         identifier: SimpleIdOrStr,
@@ -909,13 +848,17 @@ class CertRequest:
             raise ValueError(  # pragma: nocover
                 "Exactly one of key_identifier or public_key can be specified."
             )
+        result = None
         if self.public_key is not None:
             result = self.public_key
         elif self.key_identifier is not None:
             result = self.key_identifier
+        else:
+            raise ValueError("Either key_identifier or public_key must be specified.")
+
         return result
 
-    def get_message(self, public_key: str) -> bytes:  # pylint: disable=no-self-use
+    def get_message(self, public_key: str) -> bytes:
         """Get the message to sign."""
         message = self.construct_message(
             public_key,
@@ -927,7 +870,7 @@ class CertRequest:
         return message
 
     @classmethod
-    def construct_message(
+    def construct_message(  # pylint: disable=too-many-positional-arguments
         cls,
         public_key: str,
         identifier: SimpleIdOrStr,
@@ -962,7 +905,7 @@ class CertRequest:
         """
         save_path = self.get_absolute_save_path(path_prefix)
         if not Path(save_path).is_file():
-            raise Exception(  # pragma: no cover
+            raise ValueError(  # pragma: no cover
                 f"cert_request 'save_path' field {save_path} is not a file. "
                 "Please ensure that 'issue-certificates' command is called beforehand."
             )
